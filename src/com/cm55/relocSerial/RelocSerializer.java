@@ -23,8 +23,6 @@ public class RelocSerializer {
     }    
   }
   
-
-  
   /** 現在のクラス名称から永続名への変換マップ。シリアライズ時に用いる */
   protected Map<String, String>serializeMap = new HashMap<>();
   
@@ -34,7 +32,26 @@ public class RelocSerializer {
   public RelocSerializer() {
   }
   
-  protected void addTarget(Class<?>clazz, String permanentName, String originalName) {
+  /**
+   * 対象とするクラスをすべて指定する
+   * @param clazz シリアライズされているクラス（デシリアライズ時）、もしくはシリアライズするクラス（シリアライズ時）
+   * @param permanentName 永続的名称。clazzの名称に関わらず、常にこの名称でシリアライズされる。
+   * @param originalName 既存のシリアライズストリームをデシリアライズする場合は、clazzの以前の名称を指定する。
+   * 新たにシリアライズする場合には不要、nullでよい。
+   */
+  public void addTarget(Class<?>clazz, String permanentName, String originalName) {
+    if (clazz == null || permanentName == null) throw new NullPointerException();
+
+    // インターフェースではないこと
+    if (clazz.isInterface())
+      throw new IllegalArgumentException(clazz + " should not be an interface");
+    
+    // Serializableであること
+    if (!Serializable.class.isAssignableFrom(clazz))
+      throw new IllegalArgumentException(clazz + " should be Serializable");
+    
+    // serialVersionUIDが定義されていること
+    checkSerialVersionUID(clazz);
     
     // シリアライズ用マップ。現在のクラス名称から永続的名称への変換用
     serializeMap.put(clazz.getName(),  permanentName);
@@ -45,6 +62,21 @@ public class RelocSerializer {
       deserializeMap.put(originalName, clazz.getName());
     }
     deserializeMap.put(permanentName, clazz.getName());
+  }
+  
+  protected void checkSerialVersionUID(Class<?>clazz) {
+    while (Serializable.class.isAssignableFrom(clazz)) {
+      Field field;
+      try {
+        field = clazz.getDeclaredField("serialVersionUID");
+        int modifier = field.getModifiers();
+        if ((modifier & Modifier.STATIC) == 0 ||
+           field.getType() != long.class) throw new RuntimeException();
+      } catch (Exception ex) {
+        throw new IllegalArgumentException(clazz + " should have static long serialVersionUID");
+      }
+      clazz = clazz.getSuperclass();      
+    }
   }
   
   /** 
