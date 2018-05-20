@@ -46,12 +46,14 @@ public class RelocSerializer {
     if (clazz.isInterface())
       throw new IllegalArgumentException(clazz + " should not be an interface");
     
-    // Serializableであること
-    if (!Serializable.class.isAssignableFrom(clazz))
-      throw new IllegalArgumentException(clazz + " should be Serializable");
+    // enum以外の場合、Serializableであり、serialVersionUIDが定義されていること
+    if (!clazz.isEnum()) {
+      if (!Serializable.class.isAssignableFrom(clazz))
+        throw new IllegalArgumentException(clazz + " should be Serializable");
     
-    // serialVersionUIDが定義されていること
-    checkSerialVersionUID(clazz);
+      // serialVersionUIDが定義されていること
+      checkSerialVersionUID(clazz);
+    }
     
     // シリアライズ用マップ。現在のクラス名称から永続的名称への変換用
     serializeMap.put(clazz.getName(),  permanentName);

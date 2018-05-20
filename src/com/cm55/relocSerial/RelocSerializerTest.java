@@ -65,6 +65,11 @@ public class RelocSerializerTest {
       fail();
     } catch (IllegalArgumentException ex) {      
     }
+    ser.addTarget(EnumTest.class, "enum", null);
+  }
+  
+  public static enum EnumTest {
+    
   }
   
   public static class Sample0 implements Serializable {    
