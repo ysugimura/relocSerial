@@ -23,16 +23,25 @@ public class InnerToStaticTest {
     }
 
     // デシリアライズする。Bar1はstaticクラス
-    RelocSerializer ser = new RelocSerializer();
-    ser.addTarget(Foo1.class, "foo", Foo0.class.getName());
-    ser.addTarget(Foo1.Bar1.class, "bar", Foo0.Bar0.class.getName());
-    Foo1 foo = ser.deserialize(bytes);
-    assertEquals(Foo1.Bar1.class, foo.bar.getClass());
-    assertEquals(123, foo.bar.value);
+    {
+      RelocSerializer ser = new RelocSerializer();
+      ser.addTarget(Foo1.class, "foo", Foo0.class.getName());
+      ser.addTarget(Foo1.Bar1.class, "bar", Foo0.Bar0.class.getName());
+      Foo1 foo = ser.deserialize(bytes);
+      assertEquals(Foo1.Bar1.class, foo.bar.getClass());
+      assertEquals(123, foo.bar.value);
+    }
     
-    SerializationDumper sd = new SerializationDumper();
-    sd.setBytes(bytes);
-    sd.parseStream();
+    // デシリアライズする
+    {
+      RelocSerializer ser = new RelocSerializer();
+      ser.addTarget(Foo2.class, "foo", Foo0.class.getName());
+      ser.addTarget(Foo2.Bar2.class, "bar", Foo0.Bar0.class.getName());
+      Foo2 foo = ser.deserialize(bytes);
+      assertEquals(Foo2.Bar2.class, foo.bar.getClass());
+      assertEquals(123, foo.bar.value);
+      assertSame(foo, foo.bar.this$1);
+    }
   }
   
   @Test
@@ -57,6 +66,17 @@ public class InnerToStaticTest {
     
     public static class Bar1 implements Serializable {
       private static final long serialVersionUID = 1L;
+      int value;
+    }
+  }
+  
+  public static class Foo2 implements Serializable {
+    private static final long serialVersionUID = 1L;
+    Bar2 bar = new Bar2();
+    
+    public static class Bar2 implements Serializable {
+      private static final long serialVersionUID = 1L;
+      Foo2 this$1;
       int value;
     }
   }

@@ -6,6 +6,8 @@ import org.junit.runners.Suite.*;
 
 @RunWith(Suite.class)
 @SuiteClasses( { 
+  InnerToStatic2Test.class,
+  InnerToStaticTest.class,
   RelocSerializerTest.class,
   TypeCodeReplacerTest.class
 })
