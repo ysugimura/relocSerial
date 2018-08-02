@@ -16,7 +16,7 @@ targetCompatibility = 1.8
 
 // 依存を取得する場合のリポジトリ
 repositories {
-  maven { url CENTRAL_REPOSITORY }
+  jcenter()
 }
 
 // 公開設定
