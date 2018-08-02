@@ -6,6 +6,8 @@ import java.io.*;
 
 import org.junit.*;
 
+import com.cm55.deser.*;
+
 public class InnerToStaticTest {
 
   @Test
@@ -27,6 +29,10 @@ public class InnerToStaticTest {
     Foo1 foo = ser.deserialize(bytes);
     assertEquals(Foo1.Bar1.class, foo.bar.getClass());
     assertEquals(123, foo.bar.value);
+    
+    SerializationDumper sd = new SerializationDumper();
+    sd.setBytes(bytes);
+    sd.parseStream();
   }
   
   @Test
@@ -54,5 +60,4 @@ public class InnerToStaticTest {
       int value;
     }
   }
-
 }
