@@ -6,8 +6,6 @@ import java.io.*;
 
 import org.junit.*;
 
-import com.cm55.deser.*;
-
 public class InnerToStaticTest {
 
   @Test

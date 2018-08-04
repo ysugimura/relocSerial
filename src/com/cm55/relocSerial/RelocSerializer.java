@@ -66,6 +66,10 @@ public class RelocSerializer {
     deserializeMap.put(permanentName, clazz.getName());
   }
   
+  /**
+   * 指定されたクラスのserialVersionUIDの存在を確認する。
+   * @param clazz　対象クラス
+   */
   protected void checkSerialVersionUID(Class<?>clazz) {
     while (Serializable.class.isAssignableFrom(clazz)) {
       Field field;
@@ -86,14 +90,23 @@ public class RelocSerializer {
    */
   public <T>byte[]serialize(T object) {
     ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-    try (ObjectOutputStream out = new RelocOutput(bytes)) {
-      out.writeObject(object);
+    try {
+      serialize(object, bytes);
     } catch (IOException ex) {
-      throw new RuntimeException(ex);
+      throw new RuntimeException(ex);    
     }
+    // bytes.close(); 不要
     return bytes.toByteArray();
   }
 
+  /** 指定オブジェクトをストリームに書き込む。ストリームは閉じられない */
+  public <T>void serialize(T object, OutputStream out) throws IOException {
+    
+    @SuppressWarnings("resource")
+    ObjectOutputStream oout = new RelocOutput(out);
+    oout.writeObject(object);
+  }
+  
   /** 
    * {@link ObjectOutputStream}を改造し、シリアル化の際のクラス名称を永続名に変更する。
   　　*/
@@ -133,8 +146,10 @@ public class RelocSerializer {
   /** バイト配列をデシリアライズしてオブジェクトを返す */
   @SuppressWarnings("unchecked")
   public <T>T deserialize(byte[]bytes) {
-    try (ObjectInputStream in = new RelocInput(new ByteArrayInputStream(bytes))) {
-      Object object = in.readObject();
+    InputStream bytesIn = new ByteArrayInputStream(bytes);    
+    try {
+      Object object = deserialize(bytesIn);
+      // bytesIn.close(); // 不要
       if (log.isTraceEnabled()) log.trace("object " + object);
       return (T)object;
     } catch (NullPointerException ex) {
@@ -153,6 +168,12 @@ public class RelocSerializer {
       log.warn("IOException at reading:" + ex);
       return null;
     } 
+  }
+  
+  /** 指定された入力ストリームからオブジェクトを一つ取り出す。ストリームは閉じられない */
+  @SuppressWarnings({ "resource", "unchecked" })
+  public <T>T deserialize(InputStream in) throws IOException, ClassNotFoundException {
+    return (T)new RelocInput(in).readObject();   
   }
   
   /**
